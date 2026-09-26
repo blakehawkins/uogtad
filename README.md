@@ -2,30 +2,29 @@
 
 A functional control library for python in the same vein as io.vavr.control for java.
 
-Provides three functional monads:
+Provides three immutable, typed control containers. `Either` and `Maybe` use
+distinct runtime variants, so falsy values (including `None`) remain real values
+and static type checkers can distinguish each case:
 
 ```python
-class Either(Generic[T, U]):
-    """A class that holds either a T or a U. In contrast to a python Union type, this is a concrete wrapper."""
-
-class Maybe(Generic[T]):
-    """
-    A type-safe wrapper for a value or its absense.
-    This is not the same thing as a `Union[T, None]` but rather a monad for computations over that form.
-    Confusingly, in some languages this is called Optional -- but in python, Optional is an alias for Union[T, None].
-    """
-
-class Fallible(Generic[F]):
-    """Represents the (un)successful computation of a Callable as either its return value or an Exception."""
+Either.new(value)       # Left(value)
+Either.right(error)     # Right(error)
+Maybe(value)            # Some(value), even when value is None
+Maybe.empty()           # Empty()
+Fallible(computation)   # captures Exception, but not KeyboardInterrupt/SystemExit
 ```
 
 Example usage:
 
 ```python
-def raises():
+from typing import Literal
+
+from uogtad import Either, Fallible, Left, Maybe
+
+def raises() -> str:
     raise RuntimeError("tada")
 
-tada: str | None = Fallible(raises).as_result().swap().map(lambda exc: cast(str, exc.args[0])).narrow().narrow()
+tada = Fallible(raises).as_result().swap().map(lambda exc: str(exc.args[0])).narrow().narrow()
 assert tada == "tada"
 
 def categorise(num: int) -> Either[Literal['A'], Literal['B']]:
@@ -33,36 +32,35 @@ def categorise(num: int) -> Either[Literal['A'], Literal['B']]:
         return Either.new('A')  # Either is left-biased, like Result[T, E].
     return Either.right('B')
 
-just_a_lits: list[Literal['A']] = [
-    cast(Literal['A'], y.narrow().narrow()) for y in [
-        categorise(x) for x in [0, 1, 0, 2, 0, 3]
-    ] if y.is_left()
+just_a_lits = [
+    result.value
+    for result in map(categorise, [0, 1, 0, 2, 0, 3])
+    if isinstance(result, Left)
 ]
 assert just_a_lits == ["A", "A", "A"]
 
-signal = None
-inp = input("🐊")
-possibly: Maybe[str] = Maybe(inp == "🛸").flat_map(lambda is_spaceship: Maybe("🐊") if is_spaceship else Maybe(None))
-def signal_change(croc: str) -> None:
-    nonlocal signal
-    signal = f"💻 You got the croc! {croc}"
-possibly.if_present(signal_change)
-print(signal)
-assert signal is not None
+def find_croc(inp: str) -> str | None:
+    possibly = Maybe(inp == "🛸").flat_map(
+        lambda is_spaceship: Maybe("🐊") if is_spaceship else Maybe.empty()
+    )
+    return possibly.map(lambda croc: f"💻 You got the croc! {croc}").narrow()
+
+assert find_croc("🛸") == "💻 You got the croc! 🐊"
 ```
 
 
 # Ops
 
-Setup fresh clone:
+Install a fresh clone (Python 3.11 or newer):
 
 ```
-conda env create -f .conda-env.yaml
-conda activate uogtad
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install -e .
 ```
 
-Persist env changes to env file:
+Run the test suite:
 
 ```
-./export_conda.yaml
+python -m pytest
 ```
