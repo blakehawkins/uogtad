@@ -1,44 +1,118 @@
-from uogtad import Either, Fallible, Maybe
+from typing import Literal, Never
 
-from typing import cast, Literal
+import pytest
 
-def test_either():
-    mainline = Either.new(1)
-    mainline = mainline.map(lambda z: z + 1)
-    
-    assert mainline.narrow().narrow() == 2
+from uogtad import Either, Empty, Fallible, Left, Maybe, Right, Some
 
-    circuitous = mainline.flat_map(lambda z: Either.new(z + 1) if z == 2 else Either.right("???"))
-    
-    assert circuitous.narrow().narrow() == 3
 
-def test_doc_example():
-    input = lambda _: "🛸"  # Override input for pytest
+@pytest.mark.parametrize("value", [0, "", [], False, None])
+def test_either_preserves_falsy_left_values(value: object) -> None:
+    result: Either[object, Never] = Either.new(value)
+    assert result.map(lambda item: (item, "mapped")) == Left((value, "mapped"))
+    assert result.narrow() == Some(value)
 
-    def raises():
-        raise RuntimeError("tada")
 
-    tada: str | None = Fallible(raises).as_result().swap().map(lambda exc: cast(str, exc.args[0])).narrow().narrow()
-    assert tada == "tada"
+def test_either_cases_support_equality_repr_and_matching() -> None:
+    assert Either.new(1) == Either.new(1)
+    assert repr(Either.right("error")) == "Right(value='error')"
+    match Either.new(None):
+        case Left(value):
+            assert value is None
+        case Right():  # pragma: no cover - protects exhaustiveness at runtime
+            pytest.fail("unexpected right")
 
-    def categorise(num: int) -> Either[Literal['A'], Literal['B']]:
-        if num == 0:
-            return Either.new('A')  # Either is left-biased, like Result[T, E].
-        return Either.right('B')
 
-    just_a_lits: list[Literal['A']] = [
-        cast(Literal['A'], y.narrow().narrow()) for y in [
-            categorise(x) for x in [0, 1, 0, 2, 0, 3]
-        ] if y.is_left()
-    ]
-    assert just_a_lits == ["A", "A", "A"]
+def test_either_operations() -> None:
+    result: Either[int, str] = Either.new(1)
+    assert result.map(lambda value: value + 1) == Left(2)
+    assert result.flat_map(lambda value: Either.new(value + 2)) == Left(3)
+    assert Either.right("bad").map_right(str.upper) == Right("BAD")
+    assert Either.right("bad").swap() == Left("bad")
+    assert Either.right("bad").context("failed").is_right()
 
-    signal = None
-    inp = input("🐊")
-    possibly: Maybe[str] = Maybe(inp == "🛸").flat_map(lambda is_spaceship: Maybe("🐊") if is_spaceship else Maybe(None))
-    def signal_change(croc: str) -> None:
-        nonlocal signal
-        signal = f"💻 You got the croc! {croc}"
-    possibly.if_present(signal_change)
-    print(signal)
-    assert signal is not None
+
+def test_either_variant_guards_narrow_to_concrete_cases() -> None:
+    result: Either[int, str] = Either.new(1)
+    if left := result.maybe_left():
+        assert left.value + 1 == 2
+    else:  # pragma: no cover - protects type narrowing at runtime
+        pytest.fail("expected left")
+
+    assert result.maybe_right() is None
+
+
+@pytest.mark.parametrize("value", [0, "", [], False, None])
+def test_maybe_preserves_present_falsy_values(value: object) -> None:
+    maybe = Maybe(value)
+    assert maybe.is_present()
+    assert maybe.or_else("fallback") == value
+    assert maybe.or_else_get(lambda: "fallback") == value
+    assert maybe.filter(lambda _: True) == Some(value)
+    assert maybe.map(lambda item: (item, "mapped")) == Some((value, "mapped"))
+
+
+def test_empty_maybe() -> None:
+    empty: Maybe[int] = Maybe.empty()
+    assert empty == Empty()
+    assert empty.or_else(99) == 99
+    assert empty.flat_map(lambda value: Some(value + 1)) == Empty()
+    assert empty.maybe_some() is None
+
+
+@pytest.mark.parametrize("value", [0, "", [], False])
+def test_maybe_of_optional_preserves_non_none_values(value: object) -> None:
+    assert Maybe.of_optional(value) == Some(value)
+
+
+def test_maybe_of_optional_converts_none_to_empty() -> None:
+    assert Maybe.of_optional(None) == Empty()
+
+
+def test_maybe_guard_narrows_to_some() -> None:
+    if some := Maybe(0).maybe_some():
+        assert some.value == 0
+    else:  # pragma: no cover - protects type narrowing at runtime
+        pytest.fail("expected some")
+
+
+@pytest.mark.parametrize("value", [0, "", [], False, None])
+def test_fallible_preserves_falsy_successes(value: object) -> None:
+    result = Fallible(lambda: value)
+    assert result.is_success()
+    assert result.as_result() == Left(value)
+    assert result.or_else(lambda _: "fallback") == value
+
+
+def test_fallible_map_and_flat_map_capture_callback_errors() -> None:
+    mapped = Fallible(lambda: 1).map(lambda _: 1 / 0)
+    assert mapped.is_exception()
+    mapped_result = mapped.as_result()
+    assert isinstance(mapped_result, Right)
+    assert isinstance(mapped_result.value, ZeroDivisionError)
+
+    def fail(_: int) -> Fallible[str]:
+        raise ValueError("bad callback")
+
+    flat_mapped_result = Fallible(lambda: 1).flat_map(fail).as_result()
+    assert isinstance(flat_mapped_result, Right)
+    assert isinstance(flat_mapped_result.value, ValueError)
+
+    assert mapped.maybe_success() is None
+    assert isinstance(mapped.maybe_exception(), Right)
+
+
+def test_fallible_does_not_swallow_base_exceptions() -> None:
+    def interrupt() -> Never:
+        raise KeyboardInterrupt
+
+    with pytest.raises(KeyboardInterrupt):
+        Fallible(interrupt)
+
+
+def test_typed_readme_flow() -> None:
+    def categorise(number: int) -> Either[Literal["A"], Literal["B"]]:
+        if number == 0:
+            return Either.new("A")
+        return Either.right("B")
+
+    assert [item.is_left() for item in map(categorise, [0, 1, 0])] == [True, False, True]
