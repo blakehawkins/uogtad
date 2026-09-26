@@ -16,6 +16,10 @@ classifiers = [
   "Typing :: Typed",
 ]
 
+[project.optional-dependencies]
+test = ["pytest>=7"]
+typecheck = ["mypy>=1.19", "pyright>=1.1.408"]
+
 [tool.setuptools.package-data]
 uogtad = ["py.typed"]
 
