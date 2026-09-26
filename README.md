@@ -72,35 +72,20 @@ pixi run python -m pytest
 ## Comparison with other libraries
 
 [`returns`](https://returns.readthedocs.io/) is a broad collection of typed
-functional abstractions, including IO-aware and asynchronous containers,
-composable point-free helpers, and framework integrations. Choose it when an
-application benefits from that larger functional-programming ecosystem.
-
-For like-for-like concepts, `returns` models success with the right-biased
-`Success` case of `Result`, while `uogtad.Either` maps and flat-maps its
-left-hand case. Its optional container uses `Some` and a singleton `Nothing`;
-`uogtad.Maybe` instead uses `Some` and constructible `Empty` variants. Both
-offer explicit conversion from `T | None`, but `uogtad` additionally makes the
-distinction between `Maybe.new(None)` (a present `Some(None)`) and
-`Maybe.of_optional(None)` (an `Empty`) visible in its constructors. `Fallible`
-is the compact counterpart to converting exception-raising functions into a
-`returns` `Result`, without adding IO or asynchronous container layers.
+functional abstractions, including IO-aware and asynchronous containers. Its
+decorators, point-free helpers, and `flow` utilities encourage building
+annotated function pipelines. Choose it when an application benefits from that
+larger functional-programming ecosystem and composition style.
 
 [`Expression`](https://expression.readthedocs.io/) is inspired by F# and
 provides discriminated unions, computation expressions, immutable collections,
-and functional utilities in addition to `Option` and `Result`. Choose it when
-those F#-style abstractions should shape more of the application.
-
-At the container level, Expression names its result variants `Ok` and `Error`
-and its optional variants `Some` and `Nothing`; `uogtad` uses `Left` and
-`Right`, and `Some` and `Empty`. Expression's `Result` maps the `Ok` case,
-whereas `uogtad.Either` is deliberately left-biased. The libraries share core
-operations such as mapping, binding/flat-mapping, defaults, optional
-conversion, and structural matching, but `uogtad` keeps only a method-oriented
-surface and adds `Fallible` for immediately capturing an ordinary Python
-exception.
+and functional utilities in addition to `Option` and `Result`. Its decorators,
+free functions, and `pipe` helpers support an F#-style pipeline-oriented
+application design. Choose it when those abstractions should shape more of the
+application.
 
 `uogtad` deliberately has a smaller scope: `Either`, `Maybe`, and `Fallible`,
-with concrete variants that work naturally with Python pattern matching and
-strict type checking. Choose it when those control containers are sufficient
-and a compact API is preferable.
+with operations exposed directly as methods. It intentionally avoids
+decorator-driven control flow, free-function combinators, and a pipeline DSL.
+Choose it when ordinary method chaining, Python pattern matching, and a compact
+API are preferable.
