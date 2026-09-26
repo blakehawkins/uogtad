@@ -59,6 +59,15 @@ def test_empty_maybe() -> None:
     assert empty.maybe_some() is None
 
 
+@pytest.mark.parametrize("value", [0, "", [], False])
+def test_maybe_of_optional_preserves_non_none_values(value: object) -> None:
+    assert Maybe.of_optional(value) == Some(value)
+
+
+def test_maybe_of_optional_converts_none_to_empty() -> None:
+    assert Maybe.of_optional(None) == Empty()
+
+
 def test_maybe_guard_narrows_to_some() -> None:
     if some := Maybe(0).maybe_some():
         assert some.value == 0
@@ -106,4 +115,4 @@ def test_typed_readme_flow() -> None:
             return Either.new("A")
         return Either.right("B")
 
-    assert [item.value for item in map(categorise, [0, 1, 0]) if isinstance(item, Left)] == ["A", "A"]
+    assert [item.is_left() for item in map(categorise, [0, 1, 0])] == [True, False, True]

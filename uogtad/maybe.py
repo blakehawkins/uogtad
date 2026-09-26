@@ -25,6 +25,15 @@ class Maybe[T]:
     def empty(cls) -> Maybe[T]:
         return Empty[T]()
 
+    @classmethod
+    def of_optional(cls, value: T | None) -> Maybe[T]:
+        """Create ``Empty`` from ``None`` and ``Some`` from any other value."""
+        match value:
+            case None:
+                return Empty[T]()
+            case _:
+                return Some(value)
+
     def is_present(self) -> bool:
         match self:
             case Some():

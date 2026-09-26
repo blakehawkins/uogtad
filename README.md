@@ -1,16 +1,21 @@
 # uoɥʇʎd
 
+[![CI](https://github.com/blakehawkins/uogtad/actions/workflows/ci.yml/badge.svg)](https://github.com/blakehawkins/uogtad/actions/workflows/ci.yml)
+[![Python 3.15](https://img.shields.io/badge/python-3.15-blue.svg)](https://docs.python.org/3.15/)
+[![mypy: strict](https://img.shields.io/badge/mypy-strict-blue.svg)](https://mypy-lang.org/)
+[![Pyright](https://img.shields.io/badge/pyright-checked-blue.svg)](https://github.com/microsoft/pyright)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/license/mit)
+
 A functional control library for python in the same vein as io.vavr.control for java.
 
-Provides three immutable, typed control containers. `Either` and `Maybe` use
-distinct runtime variants, so falsy values (including `None`) remain real values
-and static type checkers can distinguish each case:
+Provides three immutable, typed control containers:
 
 ```python
 Either.new(value)       # Left(value)
 Either.right(error)     # Right(error)
-Maybe(value)            # Some(value), even when value is None
+Maybe.new(value)        # Some(value), even when value is None
 Maybe.empty()           # Empty()
+Maybe.of_optional(value) # Empty() for None, otherwise Some(value)
 Fallible(computation)   # captures Exception, but not KeyboardInterrupt/SystemExit
 ```
 
@@ -19,7 +24,7 @@ Example usage:
 ```python
 from typing import Literal
 
-from uogtad import Either, Fallible, Left, Maybe
+from uogtad import Either, Fallible
 
 def raises() -> str:
     raise RuntimeError("tada")
@@ -32,25 +37,14 @@ def categorise(num: int) -> Either[Literal['A'], Literal['B']]:
         return Either.new('A')  # Either is left-biased, like Result[T, E].
     return Either.right('B')
 
-just_a_lits = [
-    result.value
-    for result in map(categorise, [0, 1, 0, 2, 0, 3])
-    if isinstance(result, Left)
-]
-assert just_a_lits == ["A", "A", "A"]
+results = list(map(categorise, [0, 1, 0, 2, 0, 3]))
+assert [result.is_left() for result in results] == [True, False, True, False, True, False]
 
 result = categorise(0)
 if left := result.maybe_left():
     # Static checkers narrow `left` to Left[Literal['A']].
     assert left.value == "A"
 
-def find_croc(inp: str) -> str | None:
-    possibly = Maybe(inp == "🛸").flat_map(
-        lambda is_spaceship: Maybe("🐊") if is_spaceship else Maybe.empty()
-    )
-    return possibly.map(lambda croc: f"💻 You got the croc! {croc}").narrow()
-
-assert find_croc("🛸") == "💻 You got the croc! 🐊"
 ```
 
 
@@ -71,6 +65,23 @@ pixi add --pypi "uogtad @ git+https://github.com/blakehawkins/uogtad.git@master"
 
 Run the test suite:
 
+```shell
+pixi run python -m pytest
 ```
-python -m pytest
-```
+
+## Comparison with other libraries
+
+[`returns`](https://returns.readthedocs.io/) is a broad collection of typed
+functional abstractions, including IO-aware and asynchronous containers,
+composable point-free helpers, and framework integrations. Choose it when an
+application benefits from that larger functional-programming ecosystem.
+
+[`Expression`](https://expression.readthedocs.io/) is inspired by F# and
+provides discriminated unions, computation expressions, immutable collections,
+and functional utilities in addition to `Option` and `Result`. Choose it when
+those F#-style abstractions should shape more of the application.
+
+`uogtad` deliberately has a smaller scope: `Either`, `Maybe`, and `Fallible`,
+with concrete variants that work naturally with Python pattern matching and
+strict type checking. Choose it when those control containers are sufficient
+and a compact API is preferable.
