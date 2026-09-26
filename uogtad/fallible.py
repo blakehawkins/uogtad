@@ -11,9 +11,9 @@ class Fallible[F]:
 
     def __init__(self, computation: Callable[[], F]) -> None:
         try:
-            self._result: Either[F, Exception] = cast(Either[F, Exception], Left(computation()))
+            self._result: Either[F, Exception] = Left(computation())
         except Exception as error:
-            self._result = cast(Either[F, Exception], Right(error))
+            self._result = Right(error)
 
     @classmethod
     def _from_result[V](cls, result: Either[V, Exception]) -> "Fallible[V]":
@@ -30,24 +30,26 @@ class Fallible[F]:
     def is_exception(self) -> bool:
         return self._result.is_right()
 
-    def if_success(self, then_: Callable[[F], object]) -> None:
-        self._result.if_left(then_)
-
-    def if_exception(self, then_: Callable[[Exception], object]) -> None:
-        self._result.if_right(then_)
-
     def map[V](self, function: Callable[[F], V]) -> "Fallible[V]":
-        if isinstance(self._result, Right):
-            return Fallible._from_result(cast(Either[V, Exception], self._result))
-        return Fallible(lambda: function(cast(Left[F], self._result).value))
+        match self._result:
+            case Left(value):
+                return Fallible(lambda: function(value))
+            case Right(error):
+                return Fallible._from_result(Right(error))
+            case _:
+                raise TypeError("unknown Either variant")
 
     def flat_map[V](self, function: Callable[[F], "Fallible[V]"]) -> "Fallible[V]":
-        if isinstance(self._result, Right):
-            return Fallible._from_result(cast(Either[V, Exception], self._result))
-        try:
-            return function(cast(Left[F], self._result).value)
-        except Exception as error:
-            return Fallible._from_result(cast(Either[V, Exception], Right(error)))
+        match self._result:
+            case Left(value):
+                try:
+                    return function(value)
+                except Exception as error:
+                    return Fallible._from_result(Right(error))
+            case Right(error):
+                return Fallible._from_result(Right(error))
+            case _:
+                raise TypeError("unknown Either variant")
 
     def narrow(self) -> Maybe[F]:
         return self._result.narrow()
