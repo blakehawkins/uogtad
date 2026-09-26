@@ -14,16 +14,16 @@ class Maybe[T]:
     ``None`` is a valid present value.
     """
 
-    def __new__[V](cls, value: V) -> Maybe[V]:
+    def __new__(cls, value: T) -> Maybe[T]:
         return Some(value)
 
     @classmethod
-    def new[V](cls, value: V) -> Maybe[V]:
+    def new(cls, value: T) -> Maybe[T]:
         """Create a present value, including when ``value`` is falsy."""
         return Some(value)
 
     @classmethod
-    def empty[V](cls, _type: type[V] | None = None) -> Maybe[V]:
+    def empty(cls) -> Maybe[T]:
         return narrowed(Empty())
 
     def is_present(self) -> bool:

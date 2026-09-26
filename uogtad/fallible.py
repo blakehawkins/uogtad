@@ -1,6 +1,6 @@
 """The exception-capturing :class:`Fallible` container."""
 
-from typing import Callable, cast
+from typing import Callable
 
 from uogtad._typing import narrowed
 from uogtad.either import Either, Left, Right
@@ -17,8 +17,8 @@ class Fallible[F]:
             self._result = narrowed(Right(error))
 
     @classmethod
-    def _from_result[V](cls, result: Either[V, Exception]) -> Fallible[V]:
-        instance = cast(Fallible[V], cls.__new__(cls))
+    def _from_result(cls, result: Either[F, Exception]) -> Fallible[F]:
+        instance = cls.__new__(cls)
         instance._result = result
         return instance
 

@@ -9,12 +9,12 @@ class Either[T, U]:
     """A value in exactly one of two cases: :class:`Left` or :class:`Right`."""
 
     @classmethod
-    def new[V, E](cls, value: V, *, _right_type: type[E] | None = None) -> Either[V, E]:
+    def new(cls, value: T) -> Either[T, U]:
         """Create a left value (``Either`` is left-biased)."""
         return narrowed(Left(value))
 
     @classmethod
-    def right[S, V](cls, value: V, *, _left_type: type[S] | None = None) -> Either[S, V]:
+    def right(cls, value: U) -> Either[T, U]:
         """Create a right value."""
         return narrowed(Right(value))
 
