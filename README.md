@@ -39,6 +39,11 @@ just_a_lits = [
 ]
 assert just_a_lits == ["A", "A", "A"]
 
+result = categorise(0)
+if left := result.maybe_left():
+    # Static checkers narrow `left` to Left[Literal['A']].
+    assert left.value == "A"
+
 def find_croc(inp: str) -> str | None:
     possibly = Maybe(inp == "🛸").flat_map(
         lambda is_spaceship: Maybe("🐊") if is_spaceship else Maybe.empty()

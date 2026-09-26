@@ -38,6 +38,16 @@ class Maybe(Generic[T]):
             case _:
                 raise TypeError("unknown Maybe variant")
 
+    def maybe_some(self) -> "Some[T] | None":
+        """Return the concrete present variant, or ``None`` when empty."""
+        match self:
+            case Some() as some:
+                return some
+            case Empty():
+                return None
+            case _:
+                raise TypeError("unknown Maybe variant")
+
     def context(self, context: str) -> Either[T, RuntimeError]:
         match self:
             case Some(value):

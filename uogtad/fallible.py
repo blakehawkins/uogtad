@@ -30,6 +30,14 @@ class Fallible[F]:
     def is_exception(self) -> bool:
         return self._result.is_right()
 
+    def maybe_success(self) -> Left[F] | None:
+        """Return the concrete successful result, or ``None`` on failure."""
+        return self._result.maybe_left()
+
+    def maybe_exception(self) -> Right[Exception] | None:
+        """Return the concrete failed result, or ``None`` on success."""
+        return self._result.maybe_right()
+
     def map[V](self, function: Callable[[F], V]) -> "Fallible[V]":
         match self._result:
             case Left(value):

@@ -31,6 +31,16 @@ def test_either_operations() -> None:
     assert Either.right("bad").context("failed").is_right()
 
 
+def test_either_variant_guards_narrow_to_concrete_cases() -> None:
+    result: Either[int, str] = Either.new(1)
+    if left := result.maybe_left():
+        assert left.value + 1 == 2
+    else:  # pragma: no cover - protects type narrowing at runtime
+        pytest.fail("expected left")
+
+    assert result.maybe_right() is None
+
+
 @pytest.mark.parametrize("value", [0, "", [], False, None])
 def test_maybe_preserves_present_falsy_values(value: object) -> None:
     maybe = Maybe(value)
@@ -46,6 +56,14 @@ def test_empty_maybe() -> None:
     assert empty == Empty()
     assert empty.or_else(99) == 99
     assert empty.flat_map(lambda value: Some(value + 1)) == Empty()
+    assert empty.maybe_some() is None
+
+
+def test_maybe_guard_narrows_to_some() -> None:
+    if some := Maybe(0).maybe_some():
+        assert some.value == 0
+    else:  # pragma: no cover - protects type narrowing at runtime
+        pytest.fail("expected some")
 
 
 @pytest.mark.parametrize("value", [0, "", [], False, None])
@@ -69,6 +87,9 @@ def test_fallible_map_and_flat_map_capture_callback_errors() -> None:
     flat_mapped_result = Fallible(lambda: 1).flat_map(fail).as_result()
     assert isinstance(flat_mapped_result, Right)
     assert isinstance(flat_mapped_result.value, ValueError)
+
+    assert mapped.maybe_success() is None
+    assert isinstance(mapped.maybe_exception(), Right)
 
 
 def test_fallible_does_not_swallow_base_exceptions() -> None:

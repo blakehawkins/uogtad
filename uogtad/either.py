@@ -34,6 +34,26 @@ class Either(Generic[T, U]):
     def is_right(self) -> bool:
         return not self.is_left()
 
+    def maybe_left(self) -> "Left[T] | None":
+        """Return the concrete left variant, or ``None`` when this is right."""
+        match self:
+            case Left() as left:
+                return left
+            case Right():
+                return None
+            case _:
+                raise TypeError("unknown Either variant")
+
+    def maybe_right(self) -> "Right[U] | None":
+        """Return the concrete right variant, or ``None`` when this is left."""
+        match self:
+            case Left():
+                return None
+            case Right() as right:
+                return right
+            case _:
+                raise TypeError("unknown Either variant")
+
     def context(self, context: str) -> "Either[T, RuntimeError]":
         match self:
             case Left(value):
