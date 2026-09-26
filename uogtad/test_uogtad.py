@@ -7,7 +7,7 @@ from uogtad import Either, Empty, Fallible, Left, Maybe, Right, Some
 
 @pytest.mark.parametrize("value", [0, "", [], False, None])
 def test_either_preserves_falsy_left_values(value: object) -> None:
-    result = Either.new(value)
+    result: Either[object, Never] = Either.new(value)
     assert result.map(lambda item: (item, "mapped")) == Left((value, "mapped"))
     assert result.narrow() == Some(value)
 

@@ -51,12 +51,17 @@ assert find_croc("🛸") == "💻 You got the croc! 🐊"
 
 # Ops
 
-Install a fresh clone (Python 3.11 or newer):
+Install the current `master` branch directly from GitHub (Python 3.12 or newer)
+with pip:
 
+```shell
+python -m pip install "uogtad @ git+https://github.com/blakehawkins/uogtad.git@master"
 ```
-python -m venv .venv
-. .venv/bin/activate
-python -m pip install -e .
+
+Or add the same PyPI-compatible Git dependency to a Pixi project:
+
+```shell
+pixi add --pypi "uogtad @ git+https://github.com/blakehawkins/uogtad.git@master"
 ```
 
 Run the test suite:
