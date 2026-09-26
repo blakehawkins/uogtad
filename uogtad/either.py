@@ -1,26 +1,22 @@
 """The two-case :class:`Either` container."""
 
 from dataclasses import dataclass
-from typing import Callable, Generic, Never, TypeVar
+from typing import Callable, Never
 
 from uogtad._typing import narrowed
 
-T = TypeVar("T", covariant=True)
-U = TypeVar("U", covariant=True)
-
-
-class Either(Generic[T, U]):
+class Either[T, U]:
     """A value in exactly one of two cases: :class:`Left` or :class:`Right`."""
 
     @classmethod
-    def new[V](cls, value: V) -> "Either[V, Never]":
+    def new[V, E](cls, value: V, *, _right_type: type[E] | None = None) -> "Either[V, E]":
         """Create a left value (``Either`` is left-biased)."""
-        return Left(value)
+        return narrowed(Left(value))
 
     @classmethod
-    def right[V](cls, value: V) -> "Either[Never, V]":
+    def right[S, V](cls, value: V, *, _left_type: type[S] | None = None) -> "Either[S, V]":
         """Create a right value."""
-        return Right(value)
+        return narrowed(Right(value))
 
     def is_left(self) -> bool:
         match self:
@@ -122,7 +118,7 @@ class Either(Generic[T, U]):
             case Left(value):
                 return Some(value)
             case Right():
-                return Empty()
+                return narrowed(Empty())
             case _:
                 raise TypeError("unknown Either variant")
 

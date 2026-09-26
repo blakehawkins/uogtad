@@ -2,6 +2,7 @@
 
 from typing import Callable, cast
 
+from uogtad._typing import narrowed
 from uogtad.either import Either, Left, Right
 from uogtad.maybe import Maybe
 
@@ -11,9 +12,9 @@ class Fallible[F]:
 
     def __init__(self, computation: Callable[[], F]) -> None:
         try:
-            self._result: Either[F, Exception] = Left(computation())
+            self._result: Either[F, Exception] = narrowed(Left(computation()))
         except Exception as error:
-            self._result = Right(error)
+            self._result = narrowed(Right(error))
 
     @classmethod
     def _from_result[V](cls, result: Either[V, Exception]) -> "Fallible[V]":

@@ -1,16 +1,13 @@
 """The optional-value :class:`Maybe` container."""
 
 from dataclasses import dataclass
-from typing import Callable, Generic, Never, TypeVar
+from typing import Callable, Never
 
 from uogtad._typing import narrowed
 from uogtad.either import Either, Left, Right
 
 
-T = TypeVar("T", covariant=True)
-
-
-class Maybe(Generic[T]):
+class Maybe[T]:
     """A value represented by either :class:`Some` or :class:`Empty`.
 
     ``Maybe(value)`` creates ``Some(value)``. Unlike the previous implementation,
@@ -26,8 +23,8 @@ class Maybe(Generic[T]):
         return Some(value)
 
     @classmethod
-    def empty(cls) -> "Maybe[Never]":
-        return Empty()
+    def empty[V](cls, _type: type[V] | None = None) -> "Maybe[V]":
+        return narrowed(Empty())
 
     def is_present(self) -> bool:
         match self:
@@ -51,9 +48,9 @@ class Maybe(Generic[T]):
     def context(self, context: str) -> Either[T, RuntimeError]:
         match self:
             case Some(value):
-                return Left(value)
+                return narrowed(Left(value))
             case Empty():
-                return Right(RuntimeError(context))
+                return narrowed(Right(RuntimeError(context)))
             case _:
                 raise TypeError("unknown Maybe variant")
 
@@ -80,7 +77,7 @@ class Maybe(Generic[T]):
             case Some(value) if clause(value):
                 return Some(value)
             case Some() | Empty():
-                return Empty()
+                return narrowed(Empty())
             case _:
                 raise TypeError("unknown Maybe variant")
 
@@ -89,7 +86,7 @@ class Maybe(Generic[T]):
             case Some(value):
                 return Some(function(value))
             case Empty():
-                return Empty()
+                return narrowed(Empty())
             case _:
                 raise TypeError("unknown Maybe variant")
 
@@ -107,7 +104,7 @@ class Maybe(Generic[T]):
             case Some(value):
                 return function(value)
             case Empty():
-                return Empty()
+                return narrowed(Empty())
             case _:
                 raise TypeError("unknown Maybe variant")
 
