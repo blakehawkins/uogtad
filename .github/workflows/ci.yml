@@ -53,4 +53,4 @@ jobs:
         run: |
           pixi run python -m pip install --force-reinstall dist/*.whl
           cd "$(mktemp -d)"
-          pixi run --manifest-path "$GITHUB_WORKSPACE/pixi.toml" python -c "from importlib.resources import files; from uogtad import Either; assert Either.new(0).narrow().narrow() == 0; assert files('uogtad').joinpath('py.typed').is_file()"
+          pixi run --manifest-path "$GITHUB_WORKSPACE/pyproject.toml" python -c "from importlib.resources import files; from uogtad import Either; assert Either.new(0).narrow().narrow() == 0; assert files('uogtad').joinpath('py.typed').is_file()"
