@@ -9,12 +9,12 @@ class Either[T, U]:
     """A value in exactly one of two cases: :class:`Left` or :class:`Right`."""
 
     @classmethod
-    def new[V, E](cls, value: V, *, _right_type: type[E] | None = None) -> "Either[V, E]":
+    def new[V, E](cls, value: V, *, _right_type: type[E] | None = None) -> Either[V, E]:
         """Create a left value (``Either`` is left-biased)."""
         return narrowed(Left(value))
 
     @classmethod
-    def right[S, V](cls, value: V, *, _left_type: type[S] | None = None) -> "Either[S, V]":
+    def right[S, V](cls, value: V, *, _left_type: type[S] | None = None) -> Either[S, V]:
         """Create a right value."""
         return narrowed(Right(value))
 
@@ -30,7 +30,7 @@ class Either[T, U]:
     def is_right(self) -> bool:
         return not self.is_left()
 
-    def maybe_left(self) -> "Left[T] | None":
+    def maybe_left(self) -> Left[T] | None:
         """Return the concrete left variant, or ``None`` when this is right."""
         match self:
             case Left() as left:
@@ -40,7 +40,7 @@ class Either[T, U]:
             case _:
                 raise TypeError("unknown Either variant")
 
-    def maybe_right(self) -> "Right[U] | None":
+    def maybe_right(self) -> Right[U] | None:
         """Return the concrete right variant, or ``None`` when this is left."""
         match self:
             case Left():
@@ -50,7 +50,7 @@ class Either[T, U]:
             case _:
                 raise TypeError("unknown Either variant")
 
-    def context(self, context: str) -> "Either[T, RuntimeError]":
+    def context(self, context: str) -> Either[T, RuntimeError]:
         match self:
             case Left(value):
                 return Left(value)
@@ -59,7 +59,7 @@ class Either[T, U]:
             case _:
                 raise TypeError("unknown Either variant")
 
-    def swap(self) -> "Either[U, T]":
+    def swap(self) -> Either[U, T]:
         match self:
             case Left(value):
                 return Right(value)
@@ -77,7 +77,7 @@ class Either[T, U]:
             case _:
                 raise TypeError("unknown Either variant")
 
-    def map[V](self, function: Callable[[T], V]) -> "Either[V, U]":
+    def map[V](self, function: Callable[[T], V]) -> Either[V, U]:
         match self:
             case Left(value):
                 return Left(function(value))
@@ -86,7 +86,7 @@ class Either[T, U]:
             case _:
                 raise TypeError("unknown Either variant")
 
-    def flat_map[V](self, function: Callable[[T], "Either[V, U]"]) -> "Either[V, U]":
+    def flat_map[V](self, function: Callable[[T], Either[V, U]]) -> Either[V, U]:
         match self:
             case Left(value):
                 return function(value)
@@ -95,7 +95,7 @@ class Either[T, U]:
             case _:
                 raise TypeError("unknown Either variant")
 
-    def map_right[V](self, function: Callable[[U], V]) -> "Either[T, V]":
+    def map_right[V](self, function: Callable[[U], V]) -> Either[T, V]:
         match self:
             case Left(value):
                 return Left(value)
@@ -104,7 +104,7 @@ class Either[T, U]:
             case _:
                 raise TypeError("unknown Either variant")
 
-    def flat_map_right[V](self, function: Callable[[U], "Either[T, V]"]) -> "Either[T, V]":
+    def flat_map_right[V](self, function: Callable[[U], Either[T, V]]) -> Either[T, V]:
         match self:
             case Left(value):
                 return Left(value)
@@ -113,7 +113,7 @@ class Either[T, U]:
             case _:
                 raise TypeError("unknown Either variant")
 
-    def narrow(self) -> "Maybe[T]":
+    def narrow(self) -> Maybe[T]:
         match self:
             case Left(value):
                 return Some(value)

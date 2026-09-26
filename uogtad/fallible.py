@@ -17,7 +17,7 @@ class Fallible[F]:
             self._result = narrowed(Right(error))
 
     @classmethod
-    def _from_result[V](cls, result: Either[V, Exception]) -> "Fallible[V]":
+    def _from_result[V](cls, result: Either[V, Exception]) -> Fallible[V]:
         instance = cast(Fallible[V], cls.__new__(cls))
         instance._result = result
         return instance
@@ -39,7 +39,7 @@ class Fallible[F]:
         """Return the concrete failed result, or ``None`` on success."""
         return self._result.maybe_right()
 
-    def map[V](self, function: Callable[[F], V]) -> "Fallible[V]":
+    def map[V](self, function: Callable[[F], V]) -> Fallible[V]:
         match self._result:
             case Left(value):
                 return Fallible(lambda: function(value))
@@ -48,7 +48,7 @@ class Fallible[F]:
             case _:
                 raise TypeError("unknown Either variant")
 
-    def flat_map[V](self, function: Callable[[F], "Fallible[V]"]) -> "Fallible[V]":
+    def flat_map[V](self, function: Callable[[F], Fallible[V]]) -> Fallible[V]:
         match self._result:
             case Left(value):
                 try:

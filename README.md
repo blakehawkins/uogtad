@@ -56,7 +56,7 @@ assert find_croc("🛸") == "💻 You got the croc! 🐊"
 
 # Ops
 
-Install the current `master` branch directly from GitHub (Python 3.12 or newer)
+Install the current `master` branch directly from GitHub (Python 3.14 or newer)
 with pip:
 
 ```shell

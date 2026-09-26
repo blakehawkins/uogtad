@@ -14,16 +14,16 @@ class Maybe[T]:
     ``None`` is a valid present value.
     """
 
-    def __new__[V](cls, value: V) -> "Maybe[V]":
+    def __new__[V](cls, value: V) -> Maybe[V]:
         return Some(value)
 
     @classmethod
-    def new[V](cls, value: V) -> "Maybe[V]":
+    def new[V](cls, value: V) -> Maybe[V]:
         """Create a present value, including when ``value`` is falsy."""
         return Some(value)
 
     @classmethod
-    def empty[V](cls, _type: type[V] | None = None) -> "Maybe[V]":
+    def empty[V](cls, _type: type[V] | None = None) -> Maybe[V]:
         return narrowed(Empty())
 
     def is_present(self) -> bool:
@@ -35,7 +35,7 @@ class Maybe[T]:
             case _:
                 raise TypeError("unknown Maybe variant")
 
-    def maybe_some(self) -> "Some[T] | None":
+    def maybe_some(self) -> Some[T] | None:
         """Return the concrete present variant, or ``None`` when empty."""
         match self:
             case Some() as some:
@@ -72,7 +72,7 @@ class Maybe[T]:
             case _:
                 raise TypeError("unknown Maybe variant")
 
-    def filter(self, clause: Callable[[T], bool]) -> "Maybe[T]":
+    def filter(self, clause: Callable[[T], bool]) -> Maybe[T]:
         match self:
             case Some(value) if clause(value):
                 return Some(value)
@@ -81,7 +81,7 @@ class Maybe[T]:
             case _:
                 raise TypeError("unknown Maybe variant")
 
-    def map[V](self, function: Callable[[T], V]) -> "Maybe[V]":
+    def map[V](self, function: Callable[[T], V]) -> Maybe[V]:
         match self:
             case Some(value):
                 return Some(function(value))
@@ -99,7 +99,7 @@ class Maybe[T]:
             case _:
                 raise TypeError("unknown Maybe variant")
 
-    def flat_map[V](self, function: Callable[[T], "Maybe[V]"]) -> "Maybe[V]":
+    def flat_map[V](self, function: Callable[[T], Maybe[V]]) -> Maybe[V]:
         match self:
             case Some(value):
                 return function(value)
@@ -115,7 +115,7 @@ class Some[L](Maybe[L]):
 
     value: L
 
-    def __new__(cls, value: L) -> "Some[L]":
+    def __new__(cls, value: L) -> Some[L]:
         return object.__new__(cls)
 
 
@@ -123,7 +123,7 @@ class Some[L](Maybe[L]):
 class Empty(Maybe[Never]):
     """The absent case of :class:`Maybe`."""
 
-    def __new__(cls) -> "Empty":
+    def __new__(cls) -> Empty:
         return object.__new__(cls)
 
 
