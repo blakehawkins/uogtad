@@ -1,14 +1,9 @@
 """The two-case :class:`Either` container."""
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Callable, Never
+from typing import Callable, Never
 
-from uogtad._lazy import lazy_import
-
-if TYPE_CHECKING:
-    import uogtad.maybe as maybe_module
-else:
-    maybe_module = lazy_import("uogtad.maybe")
+lazy import uogtad.maybe as maybe_module
 
 
 class Either[T, U]:

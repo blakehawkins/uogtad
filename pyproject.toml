@@ -7,7 +7,7 @@ name = "uogtad"
 version = "0.1.0"
 description = "Typed functional control containers for Python"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.15"
 license = "MIT"
 authors = [{name = "uogtad contributors"}]
 classifiers = [
@@ -29,3 +29,6 @@ testpaths = ["uogtad"]
 [tool.mypy]
 strict = true
 files = ["uogtad"]
+
+[tool.pyright]
+pythonVersion = "3.15"
