@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 from typing import Callable, Never
 
-from uogtad._typing import narrowed
 from uogtad.either import Either, Left, Right
 
 
@@ -24,7 +23,7 @@ class Maybe[T]:
 
     @classmethod
     def empty(cls) -> Maybe[T]:
-        return narrowed(Empty())
+        return Empty[T]()
 
     def is_present(self) -> bool:
         match self:
@@ -48,36 +47,28 @@ class Maybe[T]:
     def context(self, context: str) -> Either[T, RuntimeError]:
         match self:
             case Some(value):
-                return narrowed(Left(value))
+                return Either[T, RuntimeError].new(value)
             case Empty():
-                return narrowed(Right(RuntimeError(context)))
+                return Either[T, RuntimeError].right(RuntimeError(context))
             case _:
                 raise TypeError("unknown Maybe variant")
 
     def or_else[V](self, instead: V) -> T | V:
-        match self:
-            case Some(value):
-                return narrowed(value)
-            case Empty():
-                return instead
-            case _:
-                raise TypeError("unknown Maybe variant")
+        if (some := self.maybe_some()) is not None:
+            return some.value
+        return instead
 
     def or_else_get[V](self, instead_provider: Callable[[], V]) -> T | V:
-        match self:
-            case Some(value):
-                return narrowed(value)
-            case Empty():
-                return instead_provider()
-            case _:
-                raise TypeError("unknown Maybe variant")
+        if (some := self.maybe_some()) is not None:
+            return some.value
+        return instead_provider()
 
     def filter(self, clause: Callable[[T], bool]) -> Maybe[T]:
         match self:
             case Some(value) if clause(value):
                 return Some(value)
             case Some() | Empty():
-                return narrowed(Empty())
+                return Empty[T]()
             case _:
                 raise TypeError("unknown Maybe variant")
 
@@ -86,25 +77,21 @@ class Maybe[T]:
             case Some(value):
                 return Some(function(value))
             case Empty():
-                return narrowed(Empty())
+                return Empty[V]()
             case _:
                 raise TypeError("unknown Maybe variant")
 
     def narrow(self) -> T | None:
-        match self:
-            case Some(value):
-                return narrowed(value)
-            case Empty():
-                return None
-            case _:
-                raise TypeError("unknown Maybe variant")
+        if (some := self.maybe_some()) is not None:
+            return some.value
+        return None
 
     def flat_map[V](self, function: Callable[[T], Maybe[V]]) -> Maybe[V]:
         match self:
             case Some(value):
                 return function(value)
             case Empty():
-                return narrowed(Empty())
+                return Empty[V]()
             case _:
                 raise TypeError("unknown Maybe variant")
 
@@ -120,10 +107,10 @@ class Some[L](Maybe[L]):
 
 
 @dataclass(frozen=True)
-class Empty(Maybe[Never]):
+class Empty[T = Never](Maybe[T]):
     """The absent case of :class:`Maybe`."""
 
-    def __new__(cls) -> Empty:
+    def __new__(cls) -> Empty[T]:
         return object.__new__(cls)
 
 

@@ -2,7 +2,6 @@
 
 from typing import Callable
 
-from uogtad._typing import narrowed
 from uogtad.either import Either, Left, Right
 from uogtad.maybe import Maybe
 
@@ -12,9 +11,9 @@ class Fallible[F]:
 
     def __init__(self, computation: Callable[[], F]) -> None:
         try:
-            self._result: Either[F, Exception] = narrowed(Left(computation()))
+            self._result: Either[F, Exception] = Either[F, Exception].new(computation())
         except Exception as error:
-            self._result = narrowed(Right(error))
+            self._result = Either[F, Exception].right(error)
 
     @classmethod
     def _from_result(cls, result: Either[F, Exception]) -> Fallible[F]:
@@ -31,11 +30,11 @@ class Fallible[F]:
     def is_exception(self) -> bool:
         return self._result.is_right()
 
-    def maybe_success(self) -> Left[F] | None:
+    def maybe_success(self) -> Left[F, Exception] | None:
         """Return the concrete successful result, or ``None`` on failure."""
         return self._result.maybe_left()
 
-    def maybe_exception(self) -> Right[Exception] | None:
+    def maybe_exception(self) -> Right[Exception, F] | None:
         """Return the concrete failed result, or ``None`` on success."""
         return self._result.maybe_right()
 
