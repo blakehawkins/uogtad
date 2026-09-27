@@ -75,6 +75,12 @@ Build and validate the PyPI distributions:
 pixi run package
 ```
 
+### Releases
+
+Releases use [Release Please](https://github.com/googleapis/release-please#readme)
+and [PyPI Trusted Publishing](https://docs.pypi.org/trusted-publishers/), so no
+GitHub repository secrets are required.
+
 ## Comparison with other libraries
 
 [`returns`](https://returns.readthedocs.io/) is a broad collection of typed
