@@ -58,6 +58,12 @@ if left := result.maybe_left():
 
 # Ops
 
+Install the latest release from PyPI (Python 3.15 or newer):
+
+```shell
+python -m pip install uogtad
+```
+
 Install the current `master` branch directly from GitHub (Python 3.15 or newer)
 with pip:
 
