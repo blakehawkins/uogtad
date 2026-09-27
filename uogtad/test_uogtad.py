@@ -1,4 +1,4 @@
-from typing import Literal, Never
+from typing import Literal, Never, assert_type
 
 import pytest
 
@@ -83,6 +83,12 @@ def test_fallible_preserves_falsy_successes(value: object) -> None:
     assert result.or_else(lambda _: "fallback") == value
 
 
+def test_fallible_defaults_to_capturing_exception() -> None:
+    result = Fallible(lambda: 1)
+    assert_type(result, Fallible[int, Exception])
+    assert_type(result.maybe_exception(), Right[Exception, int] | None)
+
+
 def test_fallible_map_and_flat_map_capture_callback_errors() -> None:
     mapped = Fallible(lambda: 1).map(lambda _: 1 / 0)
     assert mapped.is_exception()
@@ -107,6 +113,27 @@ def test_fallible_does_not_swallow_base_exceptions() -> None:
 
     with pytest.raises(KeyboardInterrupt):
         Fallible(interrupt)
+
+
+def test_fallible_only_captures_selected_exceptions() -> None:
+    captured = Fallible(lambda: int("not a number"), ValueError)
+    failed = captured.maybe_exception()
+    assert isinstance(failed, Right)
+    assert isinstance(failed.value, ValueError)
+
+    with pytest.raises(TypeError):
+        Fallible(lambda: len(None), ValueError)  # type: ignore[arg-type]
+
+
+def test_fallible_accepts_and_preserves_a_tuple_of_exception_types() -> None:
+    selected = (ValueError, RuntimeError)
+    result = Fallible(lambda: 1, selected).map(
+        lambda _: (_ for _ in ()).throw(RuntimeError("mapped failure"))
+    )
+
+    failed = result.maybe_exception()
+    assert isinstance(failed, Right)
+    assert isinstance(failed.value, RuntimeError)
 
 
 def test_typed_readme_flow() -> None:
