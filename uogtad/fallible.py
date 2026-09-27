@@ -1,6 +1,6 @@
 """The exception-capturing :class:`Fallible` container."""
 
-from typing import Callable
+from typing import Callable, cast
 
 from uogtad.either import Either, Left, Right
 from uogtad.maybe import Maybe
@@ -16,7 +16,7 @@ class Fallible[F, E: Exception = Exception]:
     def __init__(
         self,
         computation: Callable[[], F],
-        exceptions: type[E] | tuple[type[E], ...] = Exception,
+        exceptions: type[E] | tuple[type[E], ...] = cast(type[E], Exception),
     ) -> None:
         self._exceptions = exceptions
         try:
