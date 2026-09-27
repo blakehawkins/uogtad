@@ -69,6 +69,12 @@ Run the test suite:
 pixi run python -m pytest
 ```
 
+Build and validate the PyPI distributions:
+
+```shell
+pixi run package
+```
+
 ## Comparison with other libraries
 
 [`returns`](https://returns.readthedocs.io/) is a broad collection of typed
