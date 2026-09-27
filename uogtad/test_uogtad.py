@@ -109,6 +109,27 @@ def test_fallible_does_not_swallow_base_exceptions() -> None:
         Fallible(interrupt)
 
 
+def test_fallible_only_captures_selected_exceptions() -> None:
+    captured = Fallible(lambda: int("not a number"), ValueError)
+    failed = captured.maybe_exception()
+    assert isinstance(failed, Right)
+    assert isinstance(failed.value, ValueError)
+
+    with pytest.raises(TypeError):
+        Fallible(lambda: len(None), ValueError)  # type: ignore[arg-type]
+
+
+def test_fallible_accepts_and_preserves_a_tuple_of_exception_types() -> None:
+    selected = (ValueError, RuntimeError)
+    result = Fallible(lambda: 1, selected).map(
+        lambda _: (_ for _ in ()).throw(RuntimeError("mapped failure"))
+    )
+
+    failed = result.maybe_exception()
+    assert isinstance(failed, Right)
+    assert isinstance(failed.value, RuntimeError)
+
+
 def test_typed_readme_flow() -> None:
     def categorise(number: int) -> Either[Literal["A"], Literal["B"]]:
         if number == 0:

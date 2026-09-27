@@ -17,6 +17,7 @@ Maybe.new(value)        # Some(value), even when value is None
 Maybe.empty()           # Empty()
 Maybe.of_optional(value) # Empty() for None, otherwise Some(value)
 Fallible(computation)   # captures Exception, but not KeyboardInterrupt/SystemExit
+Fallible(computation, ValueError)  # captures only ValueError (and subclasses)
 ```
 
 Example usage:
@@ -31,6 +32,13 @@ def raises() -> str:
 
 tada = Fallible(raises).as_result().swap().map(lambda exc: str(exc.args[0])).narrow().narrow()
 assert tada == "tada"
+
+# Unexpected exceptions remain bugs instead of becoming values. A tuple works
+# just like an ``except`` clause when several exception types are expected.
+parsed = Fallible(lambda: int("not a number"), (ValueError, RuntimeError))
+if failure := parsed.maybe_exception():
+    # ``failure.value`` is statically narrowed to ValueError | RuntimeError.
+    assert isinstance(failure.value, ValueError)
 
 def categorise(num: int) -> Either[Literal['A'], Literal['B']]:
     if num == 0:
