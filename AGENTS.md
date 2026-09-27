@@ -6,6 +6,11 @@
 ## Recording release changes
 
 Release Please uses Conventional Commits as this repository's change records.
+Every pull request title must use Conventional Commit syntax. Because pull
+requests are squash-merged, the pull request title becomes the commit that
+Release Please reads; a non-conventional title can prevent a release from being
+created even when the pull request contains release-related changes.
+
 Give every pull request a squash-merge title in the form `type: summary` (or
 `type(scope): summary`) so the resulting commit can be included in the staged
 release pull request:
