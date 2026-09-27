@@ -1,6 +1,6 @@
 """The exception-capturing :class:`Fallible` container."""
 
-from typing import Callable, cast
+from typing import Callable, cast, overload
 
 from uogtad.either import Either, Left, Right
 from uogtad.maybe import Maybe
@@ -12,6 +12,16 @@ class Fallible[F, E: Exception = Exception]:
     By default, all ordinary exceptions are captured.  Pass an exception class
     or tuple of exception classes to let unrelated exceptions propagate.
     """
+
+    @overload
+    def __init__(self, computation: Callable[[], F]) -> None: ...
+
+    @overload
+    def __init__(
+        self,
+        computation: Callable[[], F],
+        exceptions: type[E] | tuple[type[E], ...],
+    ) -> None: ...
 
     def __init__(
         self,

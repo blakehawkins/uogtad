@@ -1,4 +1,4 @@
-from typing import Literal, Never
+from typing import Literal, Never, assert_type
 
 import pytest
 
@@ -81,6 +81,12 @@ def test_fallible_preserves_falsy_successes(value: object) -> None:
     assert result.is_success()
     assert result.as_result() == Left(value)
     assert result.or_else(lambda _: "fallback") == value
+
+
+def test_fallible_defaults_to_capturing_exception() -> None:
+    result = Fallible(lambda: 1)
+    assert_type(result, Fallible[int, Exception])
+    assert_type(result.maybe_exception(), Right[Exception, int] | None)
 
 
 def test_fallible_map_and_flat_map_capture_callback_errors() -> None:
