@@ -50,17 +50,17 @@ if left := result.maybe_left():
 
 # Ops
 
-Install the current `main` branch directly from GitHub (Python 3.15 or newer)
+Install the current `master` branch directly from GitHub (Python 3.15 or newer)
 with pip:
 
 ```shell
-python -m pip install "uogtad @ git+https://github.com/blakehawkins/uogtad.git@main"
+python -m pip install "uogtad @ git+https://github.com/blakehawkins/uogtad.git@master"
 ```
 
 Or add the same PyPI-compatible Git dependency to a Pixi project:
 
 ```shell
-pixi add --pypi "uogtad @ git+https://github.com/blakehawkins/uogtad.git@main"
+pixi add --pypi "uogtad @ git+https://github.com/blakehawkins/uogtad.git@master"
 ```
 
 Run the test suite:
@@ -69,28 +69,11 @@ Run the test suite:
 pixi run python -m pytest
 ```
 
-## Publishing to PyPI
-
-Before the first release, confirm that the `uogtad` project name is available
-on PyPI and create a PyPI account with two-factor authentication. The repository
-already contains the package metadata and build configuration required to make
-both a wheel and a source distribution.
-
-Build and validate the distributions from a clean checkout:
+Build and validate the PyPI distributions:
 
 ```shell
-rm -rf build dist *.egg-info
-pixi run python -m pip install build twine
-pixi run python -m build
-pixi run python -m twine check --strict dist/*
+pixi run package
 ```
-
-For releases from GitHub Actions, prefer a PyPI Trusted Publisher over a
-long-lived API token. Configure the PyPI publisher for this repository and a
-dedicated GitHub environment first; a release workflow can then request the
-short-lived `id-token: write` permission and publish the already-validated
-distributions. TestPyPI is useful for rehearsing the first release, but its
-accounts and trusted-publisher configuration are separate from PyPI's.
 
 ## Comparison with other libraries
 
