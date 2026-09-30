@@ -1,23 +1,36 @@
 """The two-case :class:`Either` container."""
 
 from dataclasses import dataclass
-from typing import Callable, Never
+from typing import Callable, Generic, Never, TypeVar
 
 lazy import uogtad.maybe as maybe_module
+lazy import uogtad.validation as validation_module
 
 
-class Either[T, U]:
+# Every container is covariant: it is immutable, so an Either[bool, ValueError]
+# can stand where an Either[int, Exception] is expected. The class syntax,
+# class Either[T, U], can only infer variance, and both checkers infer these
+# containers as invariant: pyright because maybe_left and maybe_right return a
+# subclass of the class being inferred, and mypy because the constructors take
+# their types through cls. So the variance is declared.
+T = TypeVar("T", covariant=True)
+U = TypeVar("U", covariant=True)
+
+
+class Either(Generic[T, U]):
     """A value in exactly one of two cases: :class:`Left` or :class:`Right`."""
 
+    # A covariant T or U cannot be a parameter, so the constructors take their
+    # types from the class they are called on, as in Either[int, str].new(1).
     @classmethod
-    def new(cls, value: T) -> Either[T, U]:
+    def new[V, W](cls: type[Either[V, W]], value: V) -> Either[V, W]:
         """Create a left value (``Either`` is left-biased)."""
-        return Left[T, U](value)
+        return Left[V, W](value)
 
     @classmethod
-    def right(cls, value: U) -> Either[T, U]:
+    def right[V, W](cls: type[Either[V, W]], value: W) -> Either[V, W]:
         """Create a right value."""
-        return Right[U, T](value)
+        return Right[W, V](value)
 
     def is_left(self) -> bool:
         match self:
@@ -85,7 +98,7 @@ class Either[T, U]:
             case _:
                 raise TypeError("unknown Either variant")
 
-    def flat_map[V](self, function: Callable[[T], Either[V, U]]) -> Either[V, U]:
+    def flat_map[V, F](self, function: Callable[[T], Either[V, F]]) -> Either[V, U | F]:
         match self:
             case Left(value):
                 return function(value)
@@ -103,12 +116,22 @@ class Either[T, U]:
             case _:
                 raise TypeError("unknown Either variant")
 
-    def flat_map_right[V](self, function: Callable[[U], Either[T, V]]) -> Either[T, V]:
+    def flat_map_right[S, V](self, function: Callable[[U], Either[S, V]]) -> Either[T | S, V]:
         match self:
             case Left(value):
                 return Left(value)
             case Right(value):
                 return function(value)
+            case _:
+                raise TypeError("unknown Either variant")
+
+    def as_validation(self) -> validation_module.Validation[T, U]:
+        """A validation of the left value, or of the right value as its one error."""
+        match self:
+            case Left(value):
+                return validation_module.Valid[T, U](value)
+            case Right(value):
+                return validation_module.Invalid[U, T]((value,))
             case _:
                 raise TypeError("unknown Either variant")
 
@@ -122,18 +145,30 @@ class Either[T, U]:
                 raise TypeError("unknown Either variant")
 
 
+# The cases are declared covariant for the same reasons: they inherit
+# maybe_left, maybe_right and the constructors. Each lists its own value's type
+# first, and the other side's defaults to Never.
+#
+# mypy objects to each case's field, through the __replace__ that dataclasses
+# generate from Python 3.13, which takes the fields as parameters. A frozen
+# dataclass's __replace__ makes a new object rather than changing this one, so
+# covariance stays sound, and the objection is ignored, in every module's cases.
+NoLeft = TypeVar("NoLeft", covariant=True, default=Never)
+NoRight = TypeVar("NoRight", covariant=True, default=Never)
+
+
 @dataclass(frozen=True)
-class Left[L, R = Never](Either[L, R]):
+class Left(Either[T, NoRight]):
     """The left case of :class:`Either`."""
 
-    value: L
+    value: T  # type: ignore[misc]
 
 
 @dataclass(frozen=True)
-class Right[R, L = Never](Either[L, R]):
+class Right(Either[NoLeft, U], Generic[U, NoLeft]):
     """The right case of :class:`Either`."""
 
-    value: R
+    value: U  # type: ignore[misc]
 
 
 __all__ = ["Either", "Left", "Right"]

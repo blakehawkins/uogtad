@@ -5,7 +5,7 @@ from collections.abc import Callable
 from hypothesis import given
 from hypothesis import strategies as st
 
-from uogtad import Either, Empty, Fallible, Left, Maybe, Right, Some
+from uogtad import Either, Empty, Fallible, Invalid, Left, Maybe, Right, Some, Valid, Validation
 
 
 values = st.one_of(
@@ -162,3 +162,92 @@ def test_fallible_failure_preserves_exception_and_recovers(message: str, recover
     assert result.maybe_exception() == Right(error)
     assert result.map(lambda item: item + 1).as_result() == Right(error)
     assert result.or_else(lambda caught: (caught, recovery)) == (error, recovery)
+
+
+
+errors = st.lists(st.text(), min_size=1).map(tuple)
+validations: st.SearchStrategy[Validation[int, str]] = st.one_of(
+    st.integers().map(lambda value: Validation[int, str].new(value)),
+    errors.map(lambda found: Invalid[str, int](found)),
+)
+
+
+def _errors(validation: Validation[int, str]) -> tuple[str, ...]:
+    return invalid.errors if (invalid := validation.maybe_invalid()) else ()
+
+
+@given(st.lists(validations))
+def test_validation_sequence_keeps_every_value_or_every_error_in_order(items: list[Validation[int, str]]) -> None:
+    combined = Validation.sequence(*items)
+    found = tuple(error for item in items for error in _errors(item))
+
+    assert combined.is_valid() == all(item.is_valid() for item in items)
+    if found:
+        assert combined == Invalid(found)
+    else:
+        assert combined == Valid(tuple(item.or_else(lambda _: 0) for item in items))
+
+
+@given(st.lists(validations))
+def test_validation_sequence_lazy_is_sequence_of_what_it_makes(items: list[Validation[int, str]]) -> None:
+    makers = [lambda item=item: item for item in items]
+
+    assert Validation.sequence_lazy(*makers) == Validation.sequence(*items)
+
+
+@given(validations, st.integers(), st.integers())
+def test_validation_map_obeys_identity_and_composition(validation: Validation[int, str], addend: int, factor: int) -> None:
+    def add(item: int) -> int:
+        return item + addend
+
+    def multiply(item: int) -> int:
+        return item * factor
+
+    assert validation.map(lambda item: item) == validation
+    assert validation.map(add).map(multiply) == validation.map(lambda item: multiply(add(item)))
+
+
+@given(st.integers(), validations)
+def test_validation_flat_map_on_a_valid_value_is_the_step(value: int, step_result: Validation[int, str]) -> None:
+    assert Validation[int, str].new(value).flat_map(lambda _: step_result) == step_result
+
+
+@given(errors)
+def test_validation_invalid_short_circuits_value_operations(found: tuple[str, ...]) -> None:
+    validation = Invalid[str, int](found)
+    called = False
+
+    def value_callback(_: int) -> int:
+        nonlocal called
+        called = True
+        return 0
+
+    assert validation.map(value_callback) == Invalid(found)
+    assert validation.flat_map(lambda item: Validation[int, str].new(value_callback(item))) == Invalid(found)
+    assert validation.narrow() == Empty()
+    assert not called
+
+
+@given(validations)
+def test_validation_round_trips_through_either(validation: Validation[int, str]) -> None:
+    either = validation.as_either()
+
+    assert either.is_left() == validation.is_valid()
+    if invalid := validation.maybe_invalid():
+        assert either == Right(invalid.errors)
+    assert validation.map_invalid(lambda error: error) == validation
+
+
+@given(values, st.booleans())
+def test_either_and_fallible_become_single_error_validations(value: object, is_left: bool) -> None:
+    either: Either[object, object] = Either.new(value) if is_left else Either.right(value)
+
+    assert either.as_validation() == (Valid(value) if is_left else Invalid((value,)))
+
+    error = ValueError(value)
+
+    def fail() -> object:
+        raise error
+
+    assert Fallible(lambda: value).as_validation() == Valid(value)
+    assert Fallible(fail, ValueError).as_validation() == Invalid((error,))

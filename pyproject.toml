@@ -23,9 +23,16 @@ Homepage = "https://github.com/blakehawkins/uogtad"
 Issues = "https://github.com/blakehawkins/uogtad/issues"
 Repository = "https://github.com/blakehawkins/uogtad.git"
 
-[project.optional-dependencies]
+# What developing uogtad needs, as dependency groups (PEP 735) rather than
+# extras: groups are never published, so installing uogtad never offers them.
+[dependency-groups]
 test = ["hypothesis>=6", "pytest>=7"]
 typecheck = ["mypy>=1.19", "pyright>=1.1.408"]
+
+# Named rather than discovered: automatic discovery refuses a flat layout with
+# more than one top-level directory, and adrs/ is not part of the package.
+[tool.setuptools]
+packages = ["uogtad"]
 
 [tool.setuptools.package-data]
 uogtad = ["py.typed"]
@@ -51,6 +58,18 @@ pip = ">=25"
 [tool.pixi.pypi-dependencies]
 build = ">=1"
 twine = ">=6"
+# The checkout itself, editable. Only pixi reads this table: the package built
+# from it does not depend on itself.
+uogtad = { path = ".", editable = true }
 
+# The development environment holds both dependency groups, so the first task
+# that needs it installs everything the tests and type checks use.
+[tool.pixi.environments]
+default = ["test", "typecheck"]
+
+# Every task is run through the justfile's recipe of the same name, and CI runs
+# the same tasks, so each command is written once.
 [tool.pixi.tasks]
+test = "python -m pytest -q"
+typecheck = "python -m mypy --strict uogtad && pyright"
 package = "rm -rf build dist *.egg-info && python -m build && python -m twine check --strict dist/*"
