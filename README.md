@@ -8,7 +8,7 @@
 
 A functional control library for python in the same vein as io.vavr.control for java.
 
-Provides three immutable, typed control containers:
+Provides four immutable, typed control containers:
 
 ```python
 Either.new(value)       # Left(value)
@@ -18,6 +18,8 @@ Maybe.empty()           # Empty()
 Maybe.of_optional(value) # Empty() for None, otherwise Some(value)
 Fallible(computation)   # captures Exception, but not KeyboardInterrupt/SystemExit
 Fallible(computation, ValueError)  # captures only ValueError (and subclasses)
+Validation.new(value)   # Valid(value)
+Validation.invalid(error) # Invalid((error,)), whose errors combine with others'
 ```
 
 Example usage:
@@ -55,6 +57,39 @@ if left := result.maybe_left():
 
 ```
 
+`Either` stops at its first error. `Validation` is for checks that should all
+run: `Validation.sequence` combines independent validations into a tuple of
+their values, or, if any is invalid, every error of all of them, in order.
+
+```python
+from uogtad import Invalid, Valid, Validation
+
+def check(name: str, ok: bool) -> Validation[str, str]:
+    return Validation.new(name) if ok else Validation.invalid(f"{name} failed")
+
+assert Validation.sequence(check("a", True), check("b", False), check("c", False)) == Invalid(("b failed", "c failed"))
+
+# Up to six validations keep each one's type, and their errors' types combine.
+# More are all still combined, but a type checker sees only a common type.
+count: Validation[int, ValueError] = Validation.new(1)
+name: Validation[str, KeyError] = Validation.new("a")
+both = Validation.sequence(count, name)  # Validation[tuple[int, str], ValueError | KeyError]
+assert both == Valid((1, "a"))
+
+# `sequence_lazy` takes the functions that make them instead, and can run
+# them together on a concurrent.futures executor.
+assert Validation.sequence_lazy(lambda: count, lambda: name) == Valid((1, "a"))
+```
+
+Every container is immutable, and so covariant: a `Validation[bool, ValueError]`
+can stand where a `Validation[int, Exception]` is expected.
+
+A step that needs a validation's value is chained with `flat_map`, which is
+bind: with no value to give the step, it stops at the first invalid
+validation. `map` transforms a valid value. `Fallible.as_validation()` and
+`Either.as_validation()` turn a captured exception or a right value into a
+validation's one error.
+
 
 # Ops
 
@@ -77,16 +112,17 @@ Or add the same PyPI-compatible Git dependency to a Pixi project:
 pixi add --pypi "uogtad @ git+https://github.com/blakehawkins/uogtad.git@master"
 ```
 
-Run the test suite:
+### Development
+
+Install [pixi](https://pixi.sh) and [just](https://just.systems). Every command
+is a `just` recipe, and `just --list` shows them all. The first one installs
+the environment, including uogtad itself, editable:
 
 ```shell
-pixi run python -m pytest
-```
-
-Build and validate the PyPI distributions:
-
-```shell
-pixi run package
+just validate   # the tests, then both type checkers
+just test       # the tests alone; arguments go to pytest
+just typecheck  # mypy (strict) and pyright
+just package    # build the distributions and check them with twine
 ```
 
 ### Releases
@@ -110,8 +146,8 @@ free functions, and `pipe` helpers support an F#-style pipeline-oriented
 application design. Choose it when those abstractions should shape more of the
 application.
 
-`uogtad` deliberately has a smaller scope: `Either`, `Maybe`, and `Fallible`,
-with operations exposed directly as methods. It intentionally avoids
+`uogtad` deliberately has a smaller scope: `Either`, `Maybe`, `Fallible`, and
+`Validation`, with operations exposed directly as methods. It intentionally avoids
 decorator-driven control flow, free-function combinators, and a pipeline DSL.
 Choose it when ordinary method chaining, Python pattern matching, and a compact
 API are preferable.

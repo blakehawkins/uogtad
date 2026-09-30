@@ -1,12 +1,22 @@
 """The exception-capturing :class:`Fallible` container."""
 
-from typing import Callable, cast, overload
+from typing import Callable, Generic, TypeVar, cast, overload
 
 from uogtad.either import Either, Left, Right
 from uogtad.maybe import Maybe
+from uogtad.validation import Validation
 
 
-class Fallible[F, E: Exception = Exception]:
+# Covariant, and declared: with the class syntax, mypy would infer Fallible as
+# invariant, since it cannot infer variance through flat_map's widened result,
+# Fallible[V, E | G], while E has a bound. The result and the captured exception
+# types are set once, as a Fallible is made, and never reassigned, which is what
+# makes covariance sound.
+F = TypeVar("F", covariant=True)
+E = TypeVar("E", bound=Exception, default=Exception, covariant=True)
+
+
+class Fallible(Generic[F, E]):
     """The return value or a selected exception from a computation.
 
     By default, all ordinary exceptions are captured.  Pass an exception class
@@ -35,11 +45,11 @@ class Fallible[F, E: Exception = Exception]:
             self._result = Either[F, E].right(error)
 
     @classmethod
-    def _from_result(
-        cls,
-        result: Either[F, E],
-        exceptions: type[E] | tuple[type[E], ...],
-    ) -> Fallible[F, E]:
+    def _from_result[V, G: Exception](
+        cls: type[Fallible[V, G]],
+        result: Either[V, G],
+        exceptions: type[G] | tuple[type[G], ...],
+    ) -> Fallible[V, G]:
         instance = cls.__new__(cls)
         instance._result = result
         instance._exceptions = exceptions
@@ -71,9 +81,16 @@ class Fallible[F, E: Exception = Exception]:
             case _:
                 raise TypeError("unknown Either variant")
 
-    def flat_map[V](
-        self, function: Callable[[F], Fallible[V, E]]
-    ) -> Fallible[V, E]:
+    def flat_map[V, G: Exception](
+        self, function: Callable[[F], Fallible[V, G]]
+    ) -> Fallible[V, E | G]:
+        """Run a step that makes a fallible of its own, which may capture
+        different exceptions: the result may hold either kind.
+
+        An exception this fallible captures is captured from ``function``
+        itself too. What later steps capture depends on which fallible the
+        result is: the step's, if this one succeeded, or this one otherwise.
+        """
         match self._result:
             case Left(value):
                 try:
@@ -84,6 +101,10 @@ class Fallible[F, E: Exception = Exception]:
                 return Fallible[V, E]._from_result(Right(error), self._exceptions)
             case _:
                 raise TypeError("unknown Either variant")
+
+    def as_validation(self) -> Validation[F, E]:
+        """A validation of the result, or of the captured exception as its one error."""
+        return self._result.as_validation()
 
     def narrow(self) -> Maybe[F]:
         return self._result.narrow()

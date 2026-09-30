@@ -1,12 +1,16 @@
 """The optional-value :class:`Maybe` container."""
 
 from dataclasses import dataclass
-from typing import Callable, Never
+from typing import Callable, Generic, Never, TypeVar
 
 from uogtad.either import Either, Left, Right
 
 
-class Maybe[T]:
+# Covariant, and declared, for the reasons Either's type variables are.
+T = TypeVar("T", covariant=True)
+
+
+class Maybe(Generic[T]):
     """A value represented by either :class:`Some` or :class:`Empty`.
 
     ``Maybe(value)`` creates ``Some(value)``. Unlike the previous implementation,
@@ -17,20 +21,20 @@ class Maybe[T]:
         return Some(value)
 
     @classmethod
-    def new(cls, value: T) -> Maybe[T]:
+    def new[V](cls: type[Maybe[V]], value: V) -> Maybe[V]:
         """Create a present value, including when ``value`` is falsy."""
         return Some(value)
 
     @classmethod
-    def empty(cls) -> Maybe[T]:
-        return Empty[T]()
+    def empty[V](cls: type[Maybe[V]]) -> Maybe[V]:
+        return Empty[V]()
 
     @classmethod
-    def of_optional(cls, value: T | None) -> Maybe[T]:
+    def of_optional[V](cls: type[Maybe[V]], value: V | None) -> Maybe[V]:
         """Create ``Empty`` from ``None`` and ``Some`` from any other value."""
         match value:
             case None:
-                return Empty[T]()
+                return Empty[V]()
             case _:
                 return Some(value)
 
@@ -105,21 +109,26 @@ class Maybe[T]:
                 raise TypeError("unknown Maybe variant")
 
 
+# The cases are declared covariant for the same reasons as Maybe, and Empty's
+# type defaults to Never. Some's field is ignored by mypy as Left's is.
+Absent = TypeVar("Absent", covariant=True, default=Never)
+
+
 @dataclass(frozen=True)
-class Some[L](Maybe[L]):
+class Some(Maybe[T]):
     """The present case of :class:`Maybe`."""
 
-    value: L
+    value: T  # type: ignore[misc]
 
-    def __new__(cls, value: L) -> Some[L]:
+    def __new__(cls, value: T) -> Some[T]:
         return object.__new__(cls)
 
 
 @dataclass(frozen=True)
-class Empty[T = Never](Maybe[T]):
+class Empty(Maybe[Absent]):
     """The absent case of :class:`Maybe`."""
 
-    def __new__(cls) -> Empty[T]:
+    def __new__(cls) -> Empty[Absent]:
         return object.__new__(cls)
 
 
