@@ -110,7 +110,7 @@ class Maybe(Generic[T]):
 
 
 # The cases are declared covariant for the same reasons as Maybe, and Empty's
-# type defaults to Never. Some's field is ignored by mypy as Left's is.
+# type defaults to Never.
 Absent = TypeVar("Absent", covariant=True, default=Never)
 
 
