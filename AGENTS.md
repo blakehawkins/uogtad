@@ -25,6 +25,19 @@ Use the pull request body for a longer explanation when the summary alone is
 not enough. Do not edit the version or `CHANGELOG.md` in feature pull requests;
 the automated release pull request owns those files.
 
+## Before asking for review
+
+`.github/pull_request_template.md` asks whether a change is consistent,
+coherent, complete, maintainable, readable, well-tested and safe to merge.
+Before you open a pull request, re-read its whole diff against the base branch
+and answer each question in the pull request body, with the evidence: the
+commands you ran, what they reported, and what you could not check. Fix what
+the questions turn up instead of reporting it, and keep the answers current as
+the pull request changes. GitHub fills the template in only in its web
+interface, so a pull request opened another way copies its headings. Answer
+the same questions, the same way, when asked whether a change is ready to
+merge.
+
 ## Design records
 
 Decisions about the library's design are recorded in `adrs/`, one numbered
@@ -35,7 +48,7 @@ record when you make a decision someone would otherwise have to rediscover.
 
 This project uses Python 3.15 syntax. Do not compile CPython or install a
 separate interpreter manually. Pixi obtains the appropriate Python build from
-the `conda-forge/label/python_rc` channel configured in `pyproject.toml`.
+the `conda-forge` channel configured in `pyproject.toml`.
 
 - Run every command through `just`, and `just validate` before pushing.
   `just --list` shows the rest. Pixi installs the environment, uogtad itself
@@ -43,6 +56,11 @@ the `conda-forge/label/python_rc` channel configured in `pyproject.toml`.
   recipe wraps the pixi task of the same name in `pyproject.toml`, and CI runs
   those tasks, so when you add a command, add both the task and its recipe.
   Never ask a developer to type `pixi run python -m ...`.
+- Commit `pixi.lock` with every change to `pyproject.toml`: any recipe that runs
+  a task updates it, and it is never edited by hand. Where pixi cannot reach
+  the hosts it locks with, push without it; on a pull request from a branch of
+  this repository, the Lock workflow commits it
+  (`adrs/0003-refreshing-the-lockfile.md`).
 - If Pixi or just is unavailable, install its prebuilt executable from the
   official `prefix-dev/pixi` or `casey/just` GitHub releases; do not build
   Pixi, just or Python from source.

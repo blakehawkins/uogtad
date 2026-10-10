@@ -148,11 +148,6 @@ class Either(Generic[T, U]):
 # The cases are declared covariant for the same reasons: they inherit
 # maybe_left, maybe_right and the constructors. Each lists its own value's type
 # first, and the other side's defaults to Never.
-#
-# mypy objects to each case's field, through the __replace__ that dataclasses
-# generate from Python 3.13, which takes the fields as parameters. A frozen
-# dataclass's __replace__ makes a new object rather than changing this one, so
-# covariance stays sound, and the objection is ignored, in every module's cases.
 NoLeft = TypeVar("NoLeft", covariant=True, default=Never)
 NoRight = TypeVar("NoRight", covariant=True, default=Never)
 
@@ -161,14 +156,14 @@ NoRight = TypeVar("NoRight", covariant=True, default=Never)
 class Left(Either[T, NoRight]):
     """The left case of :class:`Either`."""
 
-    value: T  # type: ignore[misc]
+    value: T
 
 
 @dataclass(frozen=True)
 class Right(Either[NoLeft, U], Generic[U, NoLeft]):
     """The right case of :class:`Either`."""
 
-    value: U  # type: ignore[misc]
+    value: U
 
 
 __all__ = ["Either", "Left", "Right"]

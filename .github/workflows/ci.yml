@@ -4,6 +4,10 @@ on:
   push:
     branches: [master]
   pull_request:
+  # Lets the Lock workflow (lock.yml) start CI itself. The pixi.lock commit it
+  # pushes is made with GITHUB_TOKEN, and GitHub does not start pull_request
+  # runs for such a push on its own, so the commit would otherwise get no CI.
+  workflow_dispatch:
 
 permissions:
   contents: read

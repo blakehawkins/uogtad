@@ -308,8 +308,7 @@ class Validation(Generic[T, E]):
 
 
 # The cases are declared covariant for the same reasons as Validation. Each
-# lists its own type first, and the other defaults to Never. Valid's field is
-# ignored by mypy as Left's is.
+# lists its own type first, and the other defaults to Never.
 NoErrors = TypeVar("NoErrors", covariant=True, default=Never)
 NoValue = TypeVar("NoValue", covariant=True, default=Never)
 
@@ -318,7 +317,7 @@ NoValue = TypeVar("NoValue", covariant=True, default=Never)
 class Valid(Validation[T, NoErrors]):
     """The valid case of :class:`Validation`."""
 
-    value: T  # type: ignore[misc]
+    value: T
 
 
 @dataclass(frozen=True)

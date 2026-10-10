@@ -58,6 +58,8 @@ refuses a covariant type there. A frozen dataclass's `__replace__` makes a new
 object rather than changing the old one, so covariance stays sound. Each case's
 field carries `# type: ignore[misc]`, and strict mypy reports an ignore that is
 no longer needed, so each will be removed when mypy stops objecting.
+(2026-10-10: mypy 2.4 stopped objecting, and the ignores were removed. The
+`typecheck` group requires it.)
 
 ## Consequences
 
