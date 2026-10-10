@@ -1,6 +1,7 @@
 # uoɥʇʎd
 
 [![CI](https://github.com/blakehawkins/uogtad/actions/workflows/ci.yml/badge.svg)](https://github.com/blakehawkins/uogtad/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/uogtad.svg)](https://pypi.org/project/uogtad/)
 [![Python 3.15](https://img.shields.io/badge/python-3.15-blue.svg)](https://docs.python.org/3.15/)
 [![mypy: strict](https://img.shields.io/badge/mypy-strict-blue.svg)](https://mypy-lang.org/)
 [![Pyright](https://img.shields.io/badge/pyright-checked-blue.svg)](https://github.com/microsoft/pyright)
@@ -93,23 +94,16 @@ validation's one error.
 
 # Ops
 
-Install the latest release from PyPI (Python 3.15 or newer):
+Install the latest release from PyPI (Python 3.15 or newer) with pip:
 
 ```shell
 python -m pip install uogtad
 ```
 
-Install the current `master` branch directly from GitHub (Python 3.15 or newer)
-with pip:
+Or add it to a Pixi project as a PyPI dependency:
 
 ```shell
-python -m pip install "uogtad @ git+https://github.com/blakehawkins/uogtad.git@master"
-```
-
-Or add the same PyPI-compatible Git dependency to a Pixi project:
-
-```shell
-pixi add --pypi "uogtad @ git+https://github.com/blakehawkins/uogtad.git@master"
+pixi add --pypi uogtad
 ```
 
 ### Development
