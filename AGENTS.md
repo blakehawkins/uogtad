@@ -43,6 +43,11 @@ the `conda-forge` channel configured in `pyproject.toml`.
   recipe wraps the pixi task of the same name in `pyproject.toml`, and CI runs
   those tasks, so when you add a command, add both the task and its recipe.
   Never ask a developer to type `pixi run python -m ...`.
+- Commit `pixi.lock` with every change to `pyproject.toml`: any recipe that runs
+  a task updates it, and it is never edited by hand. Where pixi cannot reach
+  the hosts it locks with, push without it; on a pull request from a branch of
+  this repository, the Lock workflow commits it
+  (`adrs/0003-refreshing-the-lockfile.md`).
 - If Pixi or just is unavailable, install its prebuilt executable from the
   official `prefix-dev/pixi` or `casey/just` GitHub releases; do not build
   Pixi, just or Python from source.

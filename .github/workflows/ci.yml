@@ -4,6 +4,9 @@ on:
   push:
     branches: [master]
   pull_request:
+  # The Lock workflow's commits start no pull_request run, so it dispatches
+  # this on them.
+  workflow_dispatch:
 
 permissions:
   contents: read

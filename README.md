@@ -125,6 +125,10 @@ just typecheck  # mypy (strict) and pyright
 just package    # build the distributions and check them with twine
 ```
 
+Any of them also brings `pixi.lock` up to date after a change to
+`pyproject.toml`; commit it with the change. On a pull request from a branch
+of this repository, the Lock workflow commits it if you don't.
+
 ### Releases
 
 Releases use [Release Please](https://github.com/googleapis/release-please#readme)
