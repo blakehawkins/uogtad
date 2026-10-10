@@ -25,6 +25,19 @@ Use the pull request body for a longer explanation when the summary alone is
 not enough. Do not edit the version or `CHANGELOG.md` in feature pull requests;
 the automated release pull request owns those files.
 
+## Before asking for review
+
+`.github/pull_request_template.md` asks whether a change is consistent,
+coherent, complete, maintainable, readable, well-tested and safe to merge.
+Before you open a pull request, re-read its whole diff against the base branch
+and answer each question in the pull request body, with the evidence: the
+commands you ran, what they reported, and what you could not check. Fix what
+the questions turn up instead of reporting it, and keep the answers current as
+the pull request changes. GitHub fills the template in only in its web
+interface, so a pull request opened another way copies its headings. Answer
+the same questions, the same way, when asked whether a change is ready to
+merge.
+
 ## Design records
 
 Decisions about the library's design are recorded in `adrs/`, one numbered
