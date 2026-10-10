@@ -318,7 +318,7 @@ NoValue = TypeVar("NoValue", covariant=True, default=Never)
 class Valid(Validation[T, NoErrors]):
     """The valid case of :class:`Validation`."""
 
-    value: T  # type: ignore[misc]
+    value: T
 
 
 @dataclass(frozen=True)

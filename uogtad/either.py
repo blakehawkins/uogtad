@@ -161,14 +161,14 @@ NoRight = TypeVar("NoRight", covariant=True, default=Never)
 class Left(Either[T, NoRight]):
     """The left case of :class:`Either`."""
 
-    value: T  # type: ignore[misc]
+    value: T
 
 
 @dataclass(frozen=True)
 class Right(Either[NoLeft, U], Generic[U, NoLeft]):
     """The right case of :class:`Either`."""
 
-    value: U  # type: ignore[misc]
+    value: U
 
 
 __all__ = ["Either", "Left", "Right"]

@@ -27,7 +27,7 @@ Repository = "https://github.com/blakehawkins/uogtad.git"
 # extras: groups are never published, so installing uogtad never offers them.
 [dependency-groups]
 test = ["hypothesis>=6", "pytest>=7"]
-typecheck = ["mypy>=1.19", "pyright>=1.1.408"]
+typecheck = ["mypy>=2.4", "pyright>=1.1.408"]
 
 # Named rather than discovered: automatic discovery refuses a flat layout with
 # more than one top-level directory, and adrs/ is not part of the package.

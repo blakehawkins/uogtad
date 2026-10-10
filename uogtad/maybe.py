@@ -118,7 +118,7 @@ Absent = TypeVar("Absent", covariant=True, default=Never)
 class Some(Maybe[T]):
     """The present case of :class:`Maybe`."""
 
-    value: T  # type: ignore[misc]
+    value: T
 
     def __new__(cls, value: T) -> Some[T]:
         return object.__new__(cls)
