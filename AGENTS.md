@@ -35,7 +35,7 @@ record when you make a decision someone would otherwise have to rediscover.
 
 This project uses Python 3.15 syntax. Do not compile CPython or install a
 separate interpreter manually. Pixi obtains the appropriate Python build from
-the `conda-forge/label/python_rc` channel configured in `pyproject.toml`.
+the `conda-forge` channel configured in `pyproject.toml`.
 
 - Run every command through `just`, and `just validate` before pushing.
   `just --list` shows the rest. Pixi installs the environment, uogtad itself
