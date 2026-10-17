@@ -120,7 +120,9 @@ class Some(Maybe[T]):
 
     value: T
 
-    def __new__(cls, value: T) -> Some[T]:
+    def __new__(cls, value: T | None = None) -> Some[T]:
+        # Copy and pickle allocate without arguments, then restore the fields.
+        # The generated __init__ still requires a value for normal construction.
         return object.__new__(cls)
 
 
