@@ -120,9 +120,13 @@ class Some(Maybe[T]):
 
     value: T
 
-    def __new__(cls, value: T | None = None) -> Some[T]:
-        # Copy and pickle allocate without arguments, then restore the fields.
-        # The generated __init__ still requires a value for normal construction.
+    def __new__(cls, *args: object, **kwargs: object) -> Some[T]:
+        # Maybe.__new__ returns a Some, so Some must allocate itself. It
+        # ignores its arguments: the generated __init__ requires and sets the
+        # value. copy, deepcopy and pickle (protocol 2+) call this with no
+        # arguments and restore the fields afterwards, so the object exists
+        # before its value is copied, and cycles through the value survive.
+        # __getnewargs__ would copy the value first and break them.
         return object.__new__(cls)
 
 

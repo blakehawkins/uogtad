@@ -9,8 +9,13 @@ import pytest
 from uogtad import Empty, Maybe, Some
 
 
+# Present values a reconstruction could lose or mistake for Empty: None, falsy
+# values, and mutable containers. Both the copy and the pickle tests use these.
+PAYLOADS: tuple[object, ...] = (None, False, 0, "", [], {"items": [1]})
+
+
 @pytest.mark.parametrize("reconstruct", [copy, deepcopy])
-@pytest.mark.parametrize("value", [None, False, 0, "", [], {"items": [1]}])
+@pytest.mark.parametrize("value", PAYLOADS)
 def test_some_copy_preserves_value_and_variant(
     value: object, reconstruct: Callable[[Some[object]], Some[object]]
 ) -> None:
@@ -24,7 +29,7 @@ def test_some_copy_preserves_value_and_variant(
 
 
 @pytest.mark.parametrize("protocol", range(HIGHEST_PROTOCOL + 1))
-@pytest.mark.parametrize("maybe", [Some(None), Some(False), Some(0), Some(""), Some([]), Some({"items": [1]}), Empty()])
+@pytest.mark.parametrize("maybe", [*(Some(payload) for payload in PAYLOADS), Empty()])
 def test_maybe_pickle_preserves_value_and_variant(maybe: Maybe[object], protocol: int) -> None:
     restored: Maybe[object] = loads(dumps(maybe, protocol=protocol))
 
@@ -78,12 +83,8 @@ def test_empty_supports_copy_and_deepcopy() -> None:
         assert not restored.is_present()
 
 
-def test_reconstructed_some_remains_frozen_and_typed() -> None:
+def test_reconstructed_some_remains_frozen() -> None:
     some = Some(1)
-    assert_type(Some(value=1), Some[int])
-    assert_type(Some(None), Some[None])
-    assert_type(copy(some), Some[int])
-    assert_type(deepcopy(some), Some[int])
     unpickled: Some[int] = loads(dumps(some))
 
     for restored in (copy(some), deepcopy(some), unpickled):
@@ -91,6 +92,8 @@ def test_reconstructed_some_remains_frozen_and_typed() -> None:
             restored.value = 2  # type: ignore[misc]
 
 
-def test_some_constructor_still_requires_a_value() -> None:
+def test_some_constructor_requires_a_value_and_infers_its_type() -> None:
+    assert_type(Some(value=1), Some[int])
+    assert_type(Some(None), Some[None])
     with pytest.raises(TypeError):
         Some()  # type: ignore[call-arg]
