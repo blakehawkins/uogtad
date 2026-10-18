@@ -1,0 +1,6 @@
+{
+  "include": ["*.py"],
+  "extraPaths": [".."],
+  "pythonVersion": "3.15",
+  "typeCheckingMode": "strict"
+}

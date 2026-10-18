@@ -10,8 +10,8 @@ from uogtad.maybe import Empty, Maybe, Some
 
 
 # Covariant, and declared, for the reasons Either's type variables are.
-T = TypeVar("T", covariant=True)
-E = TypeVar("E", covariant=True)
+T = TypeVar("T", covariant=True, default=Never)
+E = TypeVar("E", covariant=True, default=Never)
 
 
 class Validation(Generic[T, E]):
@@ -24,13 +24,30 @@ class Validation(Generic[T, E]):
     without that value, and so stops at the first invalid validation.
     """
 
+    # Bare-class overloads come first, as on Either (ADR 0004).
+    @overload
     @classmethod
-    def new[V, F](cls: type[Validation[V, F]], value: V) -> Validation[V, F]:
+    def new[V, F = Never](cls: type[Validation[Never, Never]], value: V) -> Validation[V, F]: ...
+
+    @overload
+    @classmethod
+    def new[V, F](cls: type[Validation[V, F]], value: V) -> Validation[V, F]: ...
+
+    @classmethod
+    def new[V, F = Never](cls: type[Validation[object, object]], value: V) -> Validation[V, F]:
         """Create a valid value."""
         return Valid[V, F](value)
 
+    @overload
     @classmethod
-    def invalid[V, F](cls: type[Validation[V, F]], error: F) -> Validation[V, F]:
+    def invalid[V = Never, F = Never](cls: type[Validation[Never, Never]], error: F) -> Validation[V, F]: ...
+
+    @overload
+    @classmethod
+    def invalid[V, F](cls: type[Validation[V, F]], error: F) -> Validation[V, F]: ...
+
+    @classmethod
+    def invalid[V = Never, F = Never](cls: type[Validation[object, object]], error: F) -> Validation[V, F]:
         """Create an invalid validation holding one error."""
         return Invalid[F, V]((error,))
 

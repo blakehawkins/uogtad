@@ -46,6 +46,11 @@ exactly what they did before. Static constructors returning `Either[V, Never]`
 were rejected: pyright narrows an annotated variable to the type assigned to
 it, so later inference saw `Never`, and in places `Unknown`.
 
+2026-10-17: [ADR 0004](0004-factory-type-inference.md) refines this decision.
+The specialised-class signature stays as an overload, alongside an earlier
+bare-class overload that infers from the value and assignment context. Strict
+consumer checks now cover calls that basic pyright accepted with `Unknown`.
+
 **Binds widen instead of requiring the same type.** `Either.flat_map` and
 `flat_map_right`, `Fallible.flat_map` and `Validation.flat_map` accept a step
 that brings its own type, and the result is the union, such as

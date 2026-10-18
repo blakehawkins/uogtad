@@ -1,7 +1,7 @@
 """The two-case :class:`Either` container."""
 
 from dataclasses import dataclass
-from typing import Callable, Generic, Never, TypeVar
+from typing import Callable, Generic, Never, TypeVar, overload
 
 lazy import uogtad.maybe as maybe_module
 lazy import uogtad.validation as validation_module
@@ -13,22 +13,39 @@ lazy import uogtad.validation as validation_module
 # containers as invariant: pyright because maybe_left and maybe_right return a
 # subclass of the class being inferred, and mypy because the constructors take
 # their types through cls. So the variance is declared.
-T = TypeVar("T", covariant=True)
-U = TypeVar("U", covariant=True)
+T = TypeVar("T", covariant=True, default=Never)
+U = TypeVar("U", covariant=True, default=Never)
 
 
 class Either(Generic[T, U]):
     """A value in exactly one of two cases: :class:`Left` or :class:`Right`."""
 
-    # A covariant T or U cannot be a parameter, so the constructors take their
-    # types from the class they are called on, as in Either[int, str].new(1).
+    # The first overload infers bare-class calls from the value and context;
+    # the second preserves explicit types, as in Either[int, str].new(1).
+    # Keep this order: see ADR 0004.
+    @overload
     @classmethod
-    def new[V, W](cls: type[Either[V, W]], value: V) -> Either[V, W]:
+    def new[V, W = Never](cls: type[Either[Never, Never]], value: V) -> Either[V, W]: ...
+
+    @overload
+    @classmethod
+    def new[V, W](cls: type[Either[V, W]], value: V) -> Either[V, W]: ...
+
+    @classmethod
+    def new[V, W = Never](cls: type[Either[object, object]], value: V) -> Either[V, W]:
         """Create a left value (``Either`` is left-biased)."""
         return Left[V, W](value)
 
+    @overload
     @classmethod
-    def right[V, W](cls: type[Either[V, W]], value: W) -> Either[V, W]:
+    def right[V = Never, W = Never](cls: type[Either[Never, Never]], value: W) -> Either[V, W]: ...
+
+    @overload
+    @classmethod
+    def right[V, W](cls: type[Either[V, W]], value: W) -> Either[V, W]: ...
+
+    @classmethod
+    def right[V = Never, W = Never](cls: type[Either[object, object]], value: W) -> Either[V, W]:
         """Create a right value."""
         return Right[W, V](value)
 

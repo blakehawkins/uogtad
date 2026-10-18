@@ -1,13 +1,13 @@
 """The optional-value :class:`Maybe` container."""
 
 from dataclasses import dataclass
-from typing import Callable, Generic, Never, TypeVar
+from typing import Callable, Generic, Never, TypeVar, overload
 
 from uogtad.either import Either, Left, Right
 
 
 # Covariant, and declared, for the reasons Either's type variables are.
-T = TypeVar("T", covariant=True)
+T = TypeVar("T", covariant=True, default=Never)
 
 
 class Maybe(Generic[T]):
@@ -20,17 +20,42 @@ class Maybe(Generic[T]):
     def __new__(cls, value: T) -> Maybe[T]:
         return Some(value)
 
+    # Bare-class overloads come first, as on Either (ADR 0004).
+    @overload
     @classmethod
-    def new[V](cls: type[Maybe[V]], value: V) -> Maybe[V]:
+    def new[V](cls: type[Maybe[Never]], value: V) -> Maybe[V]: ...
+
+    @overload
+    @classmethod
+    def new[V](cls: type[Maybe[V]], value: V) -> Maybe[V]: ...
+
+    @classmethod
+    def new[V](cls: type[Maybe[object]], value: V) -> Maybe[V]:
         """Create a present value, including when ``value`` is falsy."""
         return Some(value)
 
+    @overload
     @classmethod
-    def empty[V](cls: type[Maybe[V]]) -> Maybe[V]:
-        return Empty[V]()
+    def empty[V = Never](cls: type[Maybe[Never]]) -> Maybe[V]: ...
+
+    @overload
+    @classmethod
+    def empty[V](cls: type[Maybe[V]]) -> Maybe[V]: ...
 
     @classmethod
-    def of_optional[V](cls: type[Maybe[V]], value: V | None) -> Maybe[V]:
+    def empty[V = Never](cls: type[Maybe[object]]) -> Maybe[V]:
+        return Empty[V]()
+
+    @overload
+    @classmethod
+    def of_optional[V = Never](cls: type[Maybe[Never]], value: V | None) -> Maybe[V]: ...
+
+    @overload
+    @classmethod
+    def of_optional[V](cls: type[Maybe[V]], value: V | None) -> Maybe[V]: ...
+
+    @classmethod
+    def of_optional[V = Never](cls: type[Maybe[object]], value: V | None) -> Maybe[V]:
         """Create ``Empty`` from ``None`` and ``Some`` from any other value."""
         match value:
             case None:

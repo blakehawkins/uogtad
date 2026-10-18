@@ -46,6 +46,7 @@ files = ["uogtad"]
 
 [tool.pyright]
 pythonVersion = "3.15"
+include = ["uogtad"]
 
 [tool.pixi.workspace]
 channels = ["conda-forge"]
@@ -71,5 +72,5 @@ default = ["test", "typecheck"]
 # the same tasks, so each command is written once.
 [tool.pixi.tasks]
 test = "python -m pytest -q"
-typecheck = "python -m mypy --strict uogtad && pyright"
+typecheck = "python -m mypy --strict uogtad typing_tests && pyright && pyright --project typing_tests"
 package = "rm -rf build dist *.egg-info && python -m build && python -m twine check --strict dist/*"
