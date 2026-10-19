@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.4.0](https://github.com/blakehawkins/uogtad/compare/uogtad-v0.3.0...uogtad-v0.4.0) (2026-10-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* infer factory types under strict pyright ([#14](https://github.com/blakehawkins/uogtad/issues/14))
+
+### Bug Fixes
+
+* infer factory types under strict pyright ([#14](https://github.com/blakehawkins/uogtad/issues/14)) ([038dc4f](https://github.com/blakehawkins/uogtad/commit/038dc4f4172891b133267906412d910737c38b8a))
+* **maybe:** support copying and pickling Some ([#13](https://github.com/blakehawkins/uogtad/issues/13)) ([6c14504](https://github.com/blakehawkins/uogtad/commit/6c14504c220988c6fa6d2c2585b669deb18abeab))
+
+
+### Documentation
+
+* add a PyPI badge and install only from PyPI ([#11](https://github.com/blakehawkins/uogtad/issues/11)) ([3254595](https://github.com/blakehawkins/uogtad/commit/3254595e0eeba41c95926acc2eba74e4b85dede1))
+
 ## [0.3.0](https://github.com/blakehawkins/uogtad/compare/uogtad-v0.2.0...uogtad-v0.3.0) (2026-09-30)
 
 
