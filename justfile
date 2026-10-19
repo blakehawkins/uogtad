@@ -17,7 +17,7 @@ validate: test typecheck
 test *arguments:
     pixi run test {{arguments}}
 
-# Type-check with mypy (strict) and pyright
+# Type-check the library and consumers, with strict checks for consumers
 typecheck:
     pixi run typecheck
 

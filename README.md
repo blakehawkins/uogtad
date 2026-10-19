@@ -115,9 +115,13 @@ the environment, including uogtad itself, editable:
 ```shell
 just validate   # the tests, then both type checkers
 just test       # the tests alone; arguments go to pytest
-just typecheck  # mypy (strict) and pyright
+just typecheck  # mypy (strict), pyright, and strict consumer typing checks
 just package    # build the distributions and check them with twine
 ```
+
+`typing_tests/` checks the public factories as consumer code under strict mypy
+and strict pyright. It pins bare calls, explicit generic arguments, contextual
+assignments and downstream inference. CI runs it with `just typecheck`'s task.
 
 ### Releases
 
